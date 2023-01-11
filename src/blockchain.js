@@ -74,6 +74,12 @@ class Blockchain {
             this.chain.push(block);
             self.height += 1;
 
+            // Validate the chain after a new block has been added.
+            const validation = await this.validateChain();
+            if(!validation?.isChainValid) {
+                reject(validation?.errorLog);
+            }
+
             resolve(block);
         });
     }
@@ -117,7 +123,7 @@ class Blockchain {
                 const requestTime = parseInt(message.split(':')[1]);
                 const currentTime = parseInt(new Date().getTime().toString().slice(0,-3));
 
-                const isTimeElapsed = ((currentTime - requestTime) / 60) > 5;
+                const isTimeElapsed = Math.floor((currentTime - requestTime) / 60) > 5;
                 if(isTimeElapsed) reject("Request time elasped");
 
                 if(!isTimeElapsed && bitcoinMessage.verify(message, address, signature)) {
@@ -125,7 +131,7 @@ class Blockchain {
                     newBlock = await self._addBlock(newBlock);
                     resolve(newBlock);
                 } else {
-                    reject("Unable to verify message, signature, address or message is probably incorrect!")
+                    reject("Unable to verify message. Signature, address or message is probably incorrect!")
                 }
 
 

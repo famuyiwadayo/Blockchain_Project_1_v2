@@ -42,10 +42,10 @@ class Block {
             const auxHash = self.hash;
             // Recalculate the hash of the Block
 
-            const block = Object.assign({}, self);
-            block.hash = null;
+            // const block = Object.assign({}, self);
+            // block.hash = null;
             
-            const hash = SHA256(JSON.stringify(block)).toString();
+            const hash = SHA256(JSON.stringify({...self, hash: null})).toString();
             // Comparing if the hashes changed
             // Returning the Block is not valid
             if(auxHash !== hash) resolve(false);
@@ -72,9 +72,13 @@ class Block {
         // Resolve with the data if the object isn't the Genesis block
         const self = this;
         return new Promise((resolve, reject) => {
-            if(!this.previousBlockHash) resolve(null);
-            const data = JSON.parse(hex2ascii(self.body));
-            resolve(data);
+            try {
+                if(!self.previousBlockHash) resolve(null);
+                const data = JSON.parse(hex2ascii(self.body));
+                resolve(data);
+            } catch (error) {
+                reject(error.message);
+            }
         });
 
     }
